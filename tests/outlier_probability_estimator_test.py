@@ -9,7 +9,7 @@ from sklearn.svm import OneClassSVM
 from sklearn.covariance import EllipticEnvelope
 from ptOutlierProbability.outlier_probability_estimator import OutlierProbabilityEstimator
 
-class EstimatorNBTest(unittest.TestCase):
+class OutlierEstimatorTest(unittest.TestCase):
     
     def get_estimators(self):
 
