@@ -4,7 +4,6 @@ from sklearn.ensemble import IsolationForest
 from sklearn.base import clone
 
 class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
-    #TODO this probably need a change to an object instead of class name!
     
     def __init__(self, outlier_detector = IsolationForest(), 
                  probability_estimator = LogisticRegression(),
