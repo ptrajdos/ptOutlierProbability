@@ -2,11 +2,12 @@ import unittest
 from sklearn.datasets import load_iris
 import numpy as np
 from sklearn.discriminant_analysis import StandardScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
 from sklearn.covariance import EllipticEnvelope
+from sklearn.ensemble import IsolationForest
 from ptOutlierProbability.outlier_probability_estimator import OutlierProbabilityEstimator
 
 class OutlierEstimatorTest(unittest.TestCase):
@@ -15,9 +16,9 @@ class OutlierEstimatorTest(unittest.TestCase):
 
         return[
             OutlierProbabilityEstimator(),
-            OutlierProbabilityEstimator(outlier_detector_class=LocalOutlierFactor, outlier_detector_arguments={"novelty":True}),
-            OutlierProbabilityEstimator(outlier_detector_class=OneClassSVM),
-            OutlierProbabilityEstimator(outlier_detector_class=EllipticEnvelope),
+            OutlierProbabilityEstimator(outlier_detector=LocalOutlierFactor(novelty=True)),
+            OutlierProbabilityEstimator(outlier_detector=OneClassSVM()),
+            OutlierProbabilityEstimator(outlier_detector=EllipticEnvelope()),
         ]
 
 
@@ -79,6 +80,36 @@ class OutlierEstimatorTest(unittest.TestCase):
             self.assertTrue(np.allclose(rowsums,1.0), "Some probs do not sum to one")
 
             clf.fit_predict(X_train)
+
+    def test_grid_search(self):
+        X, y = load_iris(return_X_y=True)
+        X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.5, random_state=0)
+
+        rf = IsolationForest()
+        svm = OneClassSVM()
+
+        clf = OutlierProbabilityEstimator()
+
+        pipe = Pipeline([('scaler', StandardScaler()), ('classifier', clf)])
+
+        params_grid = [{
+                    'classifier__outlier_detector': [rf],
+                    'classifier__outlier_detector__n_estimators': [2,3]
+
+                },
+                {
+                    'classifier__outlier_detector': [svm],
+                    'classifier__outlier_detector__nu': [0.1,0.2]
+                }]
+
+        grd = GridSearchCV(pipe, param_grid=params_grid)
+
+        grd.fit(X_train, y_train)
+        predictions = grd.predict(X_test)
+
+        self.assertIsNotNone(predictions, "Predictions are None!")
+        self.assertTrue(len(predictions) == len(X_test), "Wrong number of responses") 
+
 
 if __name__ == '__main__':
     unittest.main()

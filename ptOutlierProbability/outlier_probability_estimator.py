@@ -1,42 +1,40 @@
 from sklearn.base import BaseEstimator, ClassifierMixin,check_is_fitted
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import IsolationForest
+from sklearn.base import clone
 
 class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
+    #TODO this probably need a change to an object instead of class name!
     
-    def __init__(self, outlier_detector_class = IsolationForest, 
-                 outlier_detector_arguments = {},
-                 probability_estimator_class = LogisticRegression, 
-                 probability_estimator_arguments = {}) -> None:
+    def __init__(self, outlier_detector = IsolationForest(), 
+                 probability_estimator = LogisticRegression(),
+                 ) -> None:
         """
         Wrapper for sklearn outlier detectors that allows the probability of being an outlier to be calculated.
 
         Arguments:
         -----------
-        outlier_detector_class  -- estimator class to calculate outlier score 
-        outlier_detector_arguments -- options of the estimator class,
-        probability_estimator_class -- estimator used to calculate the probability of being an outlier, 
-        probability_estimator_arguments -- options of the probability estimator class
+        outlier_detector  -- estimator to calculate outlier score 
+        probability_estimator -- estimator used to calculate the probability of being an outlier, 
 
         """
         super().__init__()
 
-        self.outlier_detector_class = outlier_detector_class
-        self.outlier_detector_arguments = outlier_detector_arguments
-        self.probability_estimator_class = probability_estimator_class
-        self.probability_estimator_arguments = probability_estimator_arguments
+        self.outlier_detector = outlier_detector
+        self.probability_estimator = probability_estimator
+
 
 
     def fit(self, X, y=None):
 
-        self.oultier_detector_ = self.outlier_detector_class(**self.outlier_detector_arguments)
+        self.oultier_detector_ = clone(self.outlier_detector)
         self.oultier_detector_.fit(X,y)
 
         y_pred = self.oultier_detector_.predict(X)
         oultier_val = self.oultier_detector_.score_samples(X)
         oultier_val = oultier_val.reshape(-1,1)
 
-        self.probability_estimator_ = self.probability_estimator_class(** self.probability_estimator_arguments)
+        self.probability_estimator_ = clone(self.probability_estimator)
         self.probability_estimator_.fit(oultier_val, y_pred)
 
         return self
