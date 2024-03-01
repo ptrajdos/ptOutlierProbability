@@ -2,6 +2,9 @@ from sklearn.base import BaseEstimator, ClassifierMixin,check_is_fitted
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import IsolationForest
 from sklearn.base import clone
+from sklearn.dummy import DummyClassifier
+import numpy as np
+import warnings
 
 class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
     
@@ -21,6 +24,7 @@ class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
 
         self.outlier_detector = outlier_detector
         self.probability_estimator = probability_estimator
+        self.use_dummy_model = False
 
 
 
@@ -34,7 +38,14 @@ class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
         oultier_val = oultier_val.reshape(-1,1)
 
         self.probability_estimator_ = clone(self.probability_estimator)
-        self.probability_estimator_.fit(oultier_val, y_pred)
+
+        try:
+            self.probability_estimator_.fit(oultier_val, y_pred)
+        except Exception as exc:
+            warnings.warn("Exception during prob estimator fit. {}".format(exc))
+            self.probability_estimator_ = DummyClassifier()
+            self.probability_estimator_.fit(oultier_val, y_pred)
+            self.use_dummy_model = True
 
         return self
 
@@ -47,7 +58,7 @@ class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
         """
         check_is_fitted(self, ("oultier_detector_", "probability_estimator_"))
 
-        outlier_vals = self.oultier_detector_.predict(X)
+        outlier_vals = self.oultier_detector_.score_samples(X)
         outlier_vals =outlier_vals.reshape(-1,1)
 
         predictions = self.probability_estimator_.predict(outlier_vals)
@@ -66,10 +77,20 @@ class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
         """
         check_is_fitted(self, ("oultier_detector_", "probability_estimator_"))
 
-        outlier_vals = self.oultier_detector_.predict(X)
-        outlier_vals =outlier_vals.reshape(-1,1)
+        if not self.use_dummy_model:
+            outlier_vals = self.oultier_detector_.score_samples(X)
+            outlier_vals =outlier_vals.reshape(-1,1)
 
-        prob_predictions = self.probability_estimator_.predict_proba(outlier_vals)
+            prob_predictions = self.probability_estimator_.predict_proba(outlier_vals)
+
+            return prob_predictions
+        
+        preds = self.probability_estimator_.predict(X)
+        prob_predictions = np.zeros((len(preds),2))
+        if preds[0] == -1:
+            prob_predictions[:,1] = 1
+        else:
+            prob_predictions[:,0] = 1
 
         return prob_predictions
         
