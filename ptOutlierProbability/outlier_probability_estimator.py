@@ -88,9 +88,9 @@ class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
         preds = self.probability_estimator_.predict(X)
         prob_predictions = np.zeros((len(preds),2))
         if preds[0] == -1:
-            prob_predictions[:,1] = 1
-        else:
             prob_predictions[:,0] = 1
+        else:
+            prob_predictions[:,1] = 1
 
         return prob_predictions
         
