@@ -1,7 +1,7 @@
 ROOTDIR=$(realpath $(dir $(firstword $(MAKEFILE_LIST))))
 
 
-SRCDIR=${ROOTDIR}/ptOutlierProbability
+SRCDIR=${ROOTDIR}/pt_outlier_probability
 TESTDIR=${ROOTDIR}/tests
 COVDIR=${ROOTDIR}/htmlcov_p
 COVERAGERC=${ROOTDIR}/.coveragerc

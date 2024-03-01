@@ -8,7 +8,7 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
 from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
-from ptOutlierProbability.outlier_probability_estimator import OutlierProbabilityEstimator
+from pt_outlier_probability.outlier_probability_estimator import OutlierProbabilityEstimator
 
 class OutlierEstimatorTest(unittest.TestCase):
     
@@ -83,7 +83,7 @@ class OutlierEstimatorTest(unittest.TestCase):
 
             self.assertIsNotNone(predictions, "Predictions are None!")
             self.assertTrue(len(predictions) == len(X_test), "Wrong number of responses")
-            self.assertTrue( np.alltrue( np.in1d(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
+            self.assertTrue( all( np.in1d(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
 
             prob_predictions = clf.predict_proba(X_test)
             self.assertIsNotNone(prob_predictions, "Proba Predictions are None!")
@@ -111,7 +111,7 @@ class OutlierEstimatorTest(unittest.TestCase):
 
             self.assertIsNotNone(predictions, "Predictions are None!")
             self.assertTrue(len(predictions) == len(X_test), "Wrong number of responses")
-            self.assertTrue( np.alltrue( np.in1d(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
+            self.assertTrue( all( np.in1d(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
 
             prob_predictions = clf.predict_proba(X_test)
             self.assertIsNotNone(prob_predictions, "Proba Predictions are None!")
