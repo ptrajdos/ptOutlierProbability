@@ -10,8 +10,8 @@ setup(
         url = 'https://github.com/ptrajdos/ptOutlierProbability',
         description="Objects for expressing outlier scores as probabilities",
         packages=find_packages(include=[
-                'pt_outlier_probaiblity',
-                'pt_outlier_probaiblity.*',
+                'pt_outlier_probability',
+                'pt_outlier_probability.*',
                 ]),
         install_requires=[ 
                 'numpy>=1.22.4',
