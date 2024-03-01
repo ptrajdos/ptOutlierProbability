@@ -11,7 +11,7 @@ setup(
         description="Objects for expressing outlier scores as probabilities",
         packages=find_packages(include=[
                 'pt_outlier_probaiblity',
-                'pt_outlier_probaiblity',
+                'pt_outlier_probaiblity.*',
                 ]),
         install_requires=[ 
                 'numpy>=1.22.4',
