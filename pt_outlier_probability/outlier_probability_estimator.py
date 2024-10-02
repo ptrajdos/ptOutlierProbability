@@ -8,16 +8,18 @@ import warnings
 
 class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
     
-    def __init__(self, outlier_detector = IsolationForest(), 
-                 probability_estimator = LogisticRegression(),
+    def __init__(self, outlier_detector = None, 
+                 probability_estimator = None,
                  ) -> None:
         """
         Wrapper for sklearn outlier detectors that allows the probability of being an outlier to be calculated.
 
         Arguments:
         -----------
-        outlier_detector  -- estimator to calculate outlier score 
-        probability_estimator -- estimator used to calculate the probability of being an outlier, 
+        outlier_detector  -- Estimator to calculate outlier score. If None use Isolation Forest.
+                Default None 
+        probability_estimator -- Estimator used to calculate the probability of being an outlier.
+                If None use LogisticRegression.  Default None
 
         """
         super().__init__()
@@ -30,14 +32,17 @@ class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
 
     def fit(self, X, y=None):
 
-        self.oultier_detector_ = clone(self.outlier_detector)
+        self.oultier_detector_ = clone(self.outlier_detector) if self.outlier_detector is not None\
+                                    else IsolationForest()
+        
         self.oultier_detector_.fit(X,y)
 
         y_pred = self.oultier_detector_.predict(X)
         oultier_val = self.oultier_detector_.score_samples(X)
         oultier_val = oultier_val.reshape(-1,1)
 
-        self.probability_estimator_ = clone(self.probability_estimator)
+        self.probability_estimator_ = clone(self.probability_estimator) if self.probability_estimator is not None\
+                                        else LogisticRegression()
 
         try:
             self.probability_estimator_.fit(oultier_val, y_pred)
@@ -98,11 +103,3 @@ class OutlierProbabilityEstimator(BaseEstimator, ClassifierMixin):
     def fit_predict(self, X, y=None):
         self.fit(X, y)
         return self.predict(X)
-    
-    def _more_tags(self):
-        return {
-            "_xfail_checks":{
-                "check_parameters_default_constructible":
-                    "transformer has 1 mandatory parameter",
-            }
-        }
