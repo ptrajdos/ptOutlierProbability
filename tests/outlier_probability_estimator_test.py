@@ -1,3 +1,4 @@
+import inspect
 import unittest
 from sklearn import clone
 from sklearn.datasets import load_iris, make_blobs
@@ -34,13 +35,21 @@ class OutlierEstimatorTest(unittest.TestCase):
     
     def test_sklearn(self):
 
+        if 'expected_failed_checks' in inspect.signature(check_estimator).parameters:
+            # sklearn >= 1.6: generate_only is gone, skipped checks are reported as xfail
+            expected_failed = {name: 'TODO' for name in self.get_checks_to_skip()}
+            for clf in self.get_estimators():
+                check_estimator(clf, expected_failed_checks=expected_failed)
+            return
+
         for clf in self.get_estimators():
             for estimator, check in check_estimator(clf, generate_only=True):
                 if check.func.__name__ not in self.get_checks_to_skip():
                     try:
                         check(estimator)
-                    except Exception as e:
-                        raise
+                    except unittest.SkipTest:
+                        # e.g. pandas-based checks when pandas is not installed
+                        pass
                 else:
                     pass
                     # check(estimator) #For debugging purposes
@@ -179,7 +188,7 @@ class OutlierEstimatorTest(unittest.TestCase):
 
             self.assertIsNotNone(predictions, "Predictions are None!")
             self.assertTrue(len(predictions) == len(X_test), "Wrong number of responses")
-            self.assertTrue( all( np.in1d(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
+            self.assertTrue( all( np.isin(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
 
             prob_predictions = clf.predict_proba(X_test)
             self.assertIsNotNone(prob_predictions, "Proba Predictions are None!")
@@ -229,7 +238,7 @@ class OutlierEstimatorTest(unittest.TestCase):
 
             self.assertIsNotNone(predictions, "Predictions are None!")
             self.assertTrue(len(predictions) == len(X_test), "Wrong number of responses")
-            self.assertTrue( all( np.in1d(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
+            self.assertTrue( all( np.isin(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
 
             prob_predictions = clf.predict_proba(X_test)
             self.assertIsNotNone(prob_predictions, "Proba Predictions are None!")
@@ -257,7 +266,7 @@ class OutlierEstimatorTest(unittest.TestCase):
 
             self.assertIsNotNone(predictions, "Predictions are None!")
             self.assertTrue(len(predictions) == len(X_test), "Wrong number of responses")
-            self.assertTrue( all( np.in1d(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
+            self.assertTrue( all( np.isin(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
 
             prob_predictions = clf.predict_proba(X_test)
             self.assertIsNotNone(prob_predictions, "Proba Predictions are None!")
@@ -288,7 +297,7 @@ class OutlierEstimatorTest(unittest.TestCase):
 
             self.assertIsNotNone(predictions, "Predictions are None!")
             self.assertTrue(len(predictions) == len(X_test), "Wrong number of responses")
-            self.assertTrue( all( np.in1d(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
+            self.assertTrue( all( np.isin(predictions, [-1,1]) ), "Predictions mus be in {-1,1}" )
 
             prob_predictions = pipe.predict_proba(X_test)
             self.assertIsNotNone(prob_predictions, "Proba Predictions are None!")

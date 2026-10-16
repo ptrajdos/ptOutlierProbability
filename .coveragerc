@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = pt_outlier_probability
+
+[html]
+directory = htmlcov

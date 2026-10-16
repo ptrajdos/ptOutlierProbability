@@ -1,4 +1,5 @@
-from sklearn.base import BaseEstimator, ClassifierMixin,OutlierMixin,check_is_fitted
+from sklearn.base import BaseEstimator, OutlierMixin
+from sklearn.utils.validation import check_is_fitted
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import IsolationForest
 from sklearn.base import clone
@@ -6,7 +7,20 @@ from sklearn.dummy import DummyClassifier
 import numpy as np
 import warnings
 
-class OutlierProbabilityEstimator(BaseEstimator, OutlierMixin):
+try:
+    # sklearn >= 1.6
+    from sklearn.utils.validation import validate_data as _sklearn_validate_data
+except ImportError:
+    _sklearn_validate_data = None
+
+
+def _validate_data(estimator, X, **kwargs):
+    if _sklearn_validate_data is not None:
+        return _sklearn_validate_data(estimator, X, **kwargs)
+    return estimator._validate_data(X, **kwargs)
+
+
+class OutlierProbabilityEstimator(OutlierMixin, BaseEstimator):
     
     def __init__(self, outlier_detector = None, 
                  probability_estimator = None,
@@ -31,13 +45,15 @@ class OutlierProbabilityEstimator(BaseEstimator, OutlierMixin):
 
 
     def fit(self, X, y=None):
-        X= self._validate_data(
+        X= _validate_data(
+            self,
             X,
             accept_sparse=False,
             dtype=np.float64,
             order="C",
             accept_large_sparse=False,
             ensure_2d=True, allow_nd=False,
+            reset=True,
         )
 
         self.use_dummy_model_ = False
@@ -76,13 +92,15 @@ class OutlierProbabilityEstimator(BaseEstimator, OutlierMixin):
         Arrays of zeros and ones
         """
         check_is_fitted(self, ("oultier_detector_", "probability_estimator_", "use_dummy_model_", "offset_"))
-        X = self._validate_data(
+        X = _validate_data(
+            self,
             X,
             accept_sparse=False,
             dtype=np.float64,
             order="C",
             accept_large_sparse=False,
             ensure_2d=True, allow_nd=False,
+            reset=False,
         )
 
 
@@ -105,13 +123,15 @@ class OutlierProbabilityEstimator(BaseEstimator, OutlierMixin):
         The second column contains probability of not being an outlier.
         """
         check_is_fitted(self, ("oultier_detector_", "probability_estimator_", "use_dummy_model_", "offset_"))
-        X = self._validate_data(
+        X = _validate_data(
+            self,
             X,
             accept_sparse=False,
             dtype=np.float64,
             order="C",
             accept_large_sparse=False,
             ensure_2d=True, allow_nd=False,
+            reset=False,
         )
 
         if not self.use_dummy_model_:
